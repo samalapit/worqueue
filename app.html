@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Worqueue.</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230f172a'/><text x='50%' y='55%' font-family='monospace' font-size='50' font-weight='bold' fill='%23ffffff' dominant-baseline='middle' text-anchor='middle'>WQ</text></svg>">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="app-layout">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="logo-mark">
+                    <span class="logo-w">W</span><span class="logo-q">Q</span>
+                </div>
+                <div class="brand-text">
+                    <div class="brand-title-row">
+                        <h2>Worqueue<span class="dot">.</span></h2>
+                        <button type="button" class="theme-toggle" id="theme-toggle" title="Toggle dark mode" aria-label="Toggle dark mode">
+                            <svg class="theme-icon theme-icon-sun" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+                            <svg class="theme-icon theme-icon-moon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                        </button>
+                    </div>
+                    <p>Stay organized. Stay ready.</p>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <button class="nav-item active" data-tab="dashboard" id="nav-dashboard">
+                    <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                    <span>Dashboard</span>
+                </button>
+                <button class="nav-item" data-tab="pipeline" id="nav-pipeline">
+                    <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16M4 12h16M4 19h16"/><circle cx="8" cy="5" r="1.5" fill="currentColor"/><circle cx="16" cy="12" r="1.5" fill="currentColor"/><circle cx="10" cy="19" r="1.5" fill="currentColor"/></svg>
+                    <span>Applications</span>
+                </button>
+                <button class="nav-item" data-tab="about" id="nav-about">
+                    <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
+                    <span>About Worqueue</span>
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="stat-box">
+                    <span class="stat-label">Total Applications</span>
+                    <strong id="total-count" class="stat-value">0</strong>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            
+            <section id="tab-dashboard" class="tab-content active">
+                <header class="content-header">
+                    <div>
+                        <h1 class="page-title">Dashboard</h1>
+                        <p class="page-sub">Stay organized with a clear view of your job search.</p>
+                    </div>
+                </header>
+
+                <div class="dashboard-grid">
+                    <div class="panel metric-card">
+                        <span class="metric-label">Total Tracked</span>
+                        <strong class="metric-value" id="dash-total">0</strong>
+                    </div>
+                    <div class="panel metric-card">
+                        <span class="metric-label">Interviewing</span>
+                        <strong class="metric-value text-interview" id="dash-interview">0</strong>
+                    </div>
+                    <div class="panel metric-card">
+                        <span class="metric-label">Offers Received</span>
+                        <strong class="metric-value text-offer" id="dash-offered">0</strong>
+                    </div>
+                    <div class="panel metric-card">
+                        <span class="metric-label">Rejected</span>
+                        <strong class="metric-value text-rejected" id="dash-rejected">0</strong>
+                    </div>
+                </div>
+
+                <div class="panel chart-panel">
+                    <h2>Status Breakdown</h2>
+                    <p class="chart-sub">Visual distribution across pipeline stages</p>
+                    
+                    <div class="bar-chart-container">
+                        <div class="bar-row">
+                            <span class="bar-label">Applied</span>
+                            <div class="bar-track"><div class="bar-fill bg-applied" id="bar-applied" style="width: 0%;"></div></div>
+                            <span class="bar-count" id="count-applied">0</span>
+                        </div>
+                        <div class="bar-row">
+                            <span class="bar-label">Interviewing</span>
+                            <div class="bar-track"><div class="bar-fill bg-interview" id="bar-interview" style="width: 0%;"></div></div>
+                            <span class="bar-count" id="count-interview">0</span>
+                        </div>
+                        <div class="bar-row">
+                            <span class="bar-label">Offered</span>
+                            <div class="bar-track"><div class="bar-fill bg-offered" id="bar-offered" style="width: 0%;"></div></div>
+                            <span class="bar-count" id="count-offered">0</span>
+                        </div>
+                        <div class="bar-row">
+                            <span class="bar-label">Rejected</span>
+                            <div class="bar-track"><div class="bar-fill bg-rejected" id="bar-rejected" style="width: 0%;"></div></div>
+                            <span class="bar-count" id="count-rejected">0</span>
+                        </div>
+                        <div class="bar-row">
+                            <span class="bar-label">Withdrawn</span>
+                            <div class="bar-track"><div class="bar-fill bg-withdrawn" id="bar-withdrawn" style="width: 0%;"></div></div>
+                            <span class="bar-count" id="count-withdrawn">0</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="tab-pipeline" class="tab-content">
+                <header class="content-header">
+                    <div>
+                        <div class="page-title-row">
+                            <h1 class="page-title">Application List</h1>
+                            <button type="button" class="info-toggle" id="privacy-info-toggle" aria-label="Where is my data stored?" aria-expanded="false">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
+                            </button>
+                            <div class="info-tooltip" id="privacy-info-tooltip" role="tooltip">
+                                <strong>Where is my data stored?</strong>
+                                <span>Your applications are saved in this browser and stay on this device.</span>
+                            </div>
+                        </div>
+                        <p class="page-sub">Stay organized and ready for every next step.</p>
+                    </div>
+                    <div class="header-actions">
+                        <input type="text" id="search-input" placeholder="Search applications..." class="search-box" autocomplete="off">
+                        <span class="results-count" id="results-count">Showing 0 of 0</span>
+                        <button class="btn-add-header" id="btn-open-add-modal">+ Add Application</button>
+                    </div>
+                </header>
+
+                <div class="panel table-panel">
+                    <div class="view-tabs" role="tablist" aria-label="Application views">
+                        <button type="button" class="view-tab active" id="view-all" data-view="all">All Applications</button>
+                        <button type="button" class="view-tab" id="view-bookmarked" data-view="bookmarked">Bookmarked</button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th class="col-num">#</th>
+                                    <th class="col-company">Company</th>
+                                    <th class="col-role">Role</th>
+                                    <th class="col-salary">Salary</th>
+                                    <th class="col-date sortable-header" id="header-date-sort">
+                                        Applied <span id="date-sort-icon">↓</span>
+                                    </th>
+                                    <th class="col-follow-up sortable-header" id="header-follow-up-sort">
+                                        Follow-up <span id="follow-up-sort-icon">↓</span>
+                                    </th>
+                                    <th class="col-status header-status-dropdown-container" id="status-header-toggle">
+                                        <span id="status-header-label">Status</span> <span id="status-sort-icon">↓</span>
+                                        <div class="status-dropdown-menu" id="status-dropdown-menu">
+                                            <div class="status-dropdown-item active" data-status="ALL">All Statuses</div>
+                                            <div class="status-dropdown-item" data-status="Applied">Applied</div>
+                                            <div class="status-dropdown-item" data-status="Interviewing">Interviewing</div>
+                                            <div class="status-dropdown-item" data-status="Offered">Offered</div>
+                                            <div class="status-dropdown-item" data-status="Rejected">Rejected</div>
+                                            <div class="status-dropdown-item" data-status="Withdrawn">Withdrawn</div>
+                                        </div>
+                                    </th>
+                                    <th class="align-right col-action">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="job-list-body">
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="mobile-card-container" class="mobile-card-list">
+                    </div>
+                </div>
+            </section>
+
+            <section id="tab-about" class="tab-content">
+                <header class="content-header">
+                    <div>
+                        <h1 class="page-title">About Worqueue</h1>
+                        <p class="page-sub">Stay organized. Stay ready.</p>
+                    </div>
+                </header>
+
+                <div class="about-grid">
+                    <div class="panel about-card about-card-wide">
+                        <div class="about-logo-mark">
+                            <span class="logo-w">W</span><span class="logo-q">Q</span>
+                        </div>
+                        <div>
+                            <h2>What is Worqueue?</h2>
+                            <p>Worqueue is a job application tracker that helps you keep all your applications in one place. Add companies, roles, salaries, dates, links, notes, and current status so you can see your job search clearly and stay organized.</p>
+                            <p class="about-credit">Website by <a class="about-portfolio-link" href="https://samalapit.github.io/portfolio/" target="_blank" rel="noopener noreferrer">sabm.</a></p>
+                        </div>
+                    </div>
+                    <div class="panel about-card">
+                        <svg class="about-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 5 6v5c0 4.5 2.9 8.5 7 10 4.1-1.5 7-5.5 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></svg>
+                        <h2>Private and local</h2>
+                        <p>Worqueue works in your browser without an account or login. Your application details are saved on this device and are not sent to a server.</p>
+                    </div>
+                    <div class="panel about-card">
+                        <svg class="about-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+                        <h2>Back up your data</h2>
+                        <p>Browser data can be cleared, so export a backup before changing devices or clearing your browser. Import that backup later to restore your applications.</p>
+                        <div class="backup-actions">
+                            <button type="button" class="btn-submit" id="btn-export-data">Export backup</button>
+                            <button type="button" class="btn-cancel" id="btn-import-data">Import backup</button>
+                            <input type="file" id="import-file" accept=".json,application/json" hidden>
+                        </div>
+                        <p class="backup-status" id="backup-status" role="status"></p>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <div class="modal-overlay" id="form-modal-overlay">
+        <div class="panel form-panel modal-content">
+            <div class="modal-header">
+                <div>
+                    <h2 class="modal-title" id="form-title">Add Application</h2>
+                </div>
+                <button type="button" class="btn-close-modal" id="btn-close-form-modal">&times;</button>
+            </div>
+
+            <form id="job-form">
+                <input type="hidden" id="edit-id">
+
+                <div class="field-group">
+                    <label for="company">Company Name</label>
+                    <input type="text" id="company" required autocomplete="off">
+                </div>
+
+                <div class="field-group">
+                    <label for="position">Job Role</label>
+                    <input type="text" id="position" required autocomplete="off">
+                </div>
+
+                <div class="field-group">
+                    <label for="salary">Salary</label>
+                    <div class="salary-input-group">
+                        <select id="currency-select" class="currency-select">
+                            <option value="PHP">₱ (PHP)</option>
+                            <option value="USD">$ (USD)</option>
+                        </select>
+                        <input type="text" id="salary" autocomplete="off">
+                        <select id="salary-rate" class="rate-select">
+                            <option value="Month">/ Month</option>
+                            <option value="Hour">/ Hour</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="field-group">
+                    <label for="status">Current Status</label>
+                    <select id="status">
+                        <option value="Applied">Applied</option>
+                        <option value="Interviewing">Interviewing</option>
+                        <option value="Offered">Offered</option>
+                        <option value="Rejected">Rejected</option>
+                        <option value="Withdrawn">Withdrawn</option>
+                    </select>
+                </div>
+
+                <div class="field-group">
+                    <label for="applied-date">Applied Date</label>
+                    <input type="date" id="applied-date" required>
+                </div>
+
+                <div class="field-group">
+                    <label for="job-link">Job Posting Link</label>
+                    <input type="url" id="job-link" autocomplete="off">
+                </div>
+
+                <div class="field-group">
+                    <label for="follow-up-date">Follow-up Date</label>
+                    <input type="date" id="follow-up-date">
+                </div>
+
+                <div class="field-group">
+                    <label for="notes">Notes / Details</label>
+                    <textarea id="notes" rows="2"></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-submit" id="btn-submit-text">Save Application</button>
+                    <button type="button" class="btn-cancel" id="btn-cancel-modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="delete-modal-overlay">
+        <div class="panel modal-content delete-modal-box">
+            <h3 class="delete-modal-title">Delete Application?</h3>
+            <p class="delete-modal-sub">Are you sure you want to remove this application record from your tracker?</p>
+            <div class="form-actions" style="margin-top: 1.25rem;">
+                <button type="button" class="btn-delete-confirm" id="btn-confirm-delete">Delete</button>
+                <button type="button" class="btn-cancel" id="btn-cancel-delete">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
