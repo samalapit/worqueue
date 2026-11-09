@@ -39,6 +39,10 @@
                     <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16M4 12h16M4 19h16"/><circle cx="8" cy="5" r="1.5" fill="currentColor"/><circle cx="16" cy="12" r="1.5" fill="currentColor"/><circle cx="10" cy="19" r="1.5" fill="currentColor"/></svg>
                     <span>Applications</span>
                 </button>
+                <button class="nav-item" data-tab="profile" id="nav-profile">
+                    <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+                    <span>Profile</span>
+                </button>
                 <button class="nav-item" data-tab="about" id="nav-about">
                     <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
                     <span>About Worqueue</span>
@@ -80,6 +84,22 @@
                         <span class="metric-label">Rejected</span>
                         <strong class="metric-value text-rejected" id="dash-rejected">0</strong>
                     </div>
+                    <div class="panel metric-card">
+                        <span class="metric-label">Interview Rate</span>
+                        <strong class="metric-value" id="dash-rate">0%</strong>
+                        <span class="metric-hint">Interviewing + offered, out of all tracked</span>
+                    </div>
+                    <div class="panel metric-card">
+                        <span class="metric-label">Your Follow-ups Due</span>
+                        <strong class="metric-value" id="dash-followups">0</strong>
+                        <span class="metric-hint">Open applications at or past their date</span>
+                    </div>
+                </div>
+
+                <div class="panel attention-panel">
+                    <h2>Needs Attention</h2>
+                    <p class="attention-sub">Your follow-ups that are due and scheduled interviews in the next 14 days.</p>
+                    <ul class="attention-list" id="attention-list"></ul>
                 </div>
 
                 <div class="panel chart-panel">
@@ -147,7 +167,7 @@
                         <table>
                             <thead>
                                 <tr>
-                                    <th class="col-num">#</th>
+                                    <th class="col-num sortable-header" id="header-number-sort" title="Sort by entry number">#<span id="number-sort-icon">↑</span></th>
                                     <th class="col-company">Company</th>
                                     <th class="col-role">Role</th>
                                     <th class="col-salary">Salary</th>
@@ -156,6 +176,9 @@
                                     </th>
                                     <th class="col-follow-up sortable-header" id="header-follow-up-sort">
                                         Follow-up <span id="follow-up-sort-icon">↓</span>
+                                    </th>
+                                    <th class="col-interview sortable-header" id="header-interview-sort">
+                                        Interview <span id="interview-sort-icon">↓</span>
                                     </th>
                                     <th class="col-status header-status-dropdown-container" id="status-header-toggle">
                                         <span id="status-header-label">Status</span> <span id="status-sort-icon">↓</span>
@@ -175,7 +198,128 @@
                             </tbody>
                         </table>
                     </div>
+                    <label class="mobile-sort" for="mobile-sort">
+                        <span>Sort by</span>
+                        <select id="mobile-sort">
+                            <option value="number-asc">Entry # (oldest first)</option>
+                            <option value="number-desc">Entry # (newest first)</option>
+                            <option value="applied-desc">Applied (newest first)</option>
+                            <option value="applied-asc">Applied (oldest first)</option>
+                            <option value="followUp-asc">Follow-up (soonest first)</option>
+                            <option value="followUp-desc">Follow-up (latest first)</option>
+                            <option value="interview-asc">Interview (soonest first)</option>
+                            <option value="interview-desc">Interview (latest first)</option>
+                        </select>
+                    </label>
                     <div id="mobile-card-container" class="mobile-card-list">
+                    </div>
+                </div>
+            </section>
+
+            <section id="tab-profile" class="tab-content">
+                <header class="content-header">
+                    <div>
+                        <h1 class="page-title">Profile</h1>
+                        <p class="page-sub">Keep your details, photo and resume ready to copy when you apply.</p>
+                    </div>
+                    <div class="header-actions">
+                        <span class="results-count" id="profile-status" role="status"></span>
+                        <button type="button" class="btn-add-header" id="btn-copy-all">Copy all details</button>
+                    </div>
+                </header>
+
+                <div class="profile-grid">
+                    <div class="panel profile-card">
+                        <div class="profile-photo">
+                            <img id="profile-photo" alt="" hidden>
+                            <span class="profile-initials" id="profile-initials" aria-hidden="true">?</span>
+                        </div>
+                        <div class="profile-actions">
+                            <button type="button" class="btn-submit" id="btn-photo-upload">Upload photo</button>
+                            <button type="button" class="btn-cancel" id="btn-photo-copy">Copy image</button>
+                            <button type="button" class="btn-cancel" id="btn-photo-download">Download</button>
+                            <button type="button" class="btn-cancel" id="btn-photo-remove">Remove</button>
+                            <input type="file" id="photo-file" accept="image/*" hidden>
+                        </div>
+                        <p class="profile-hint">Photos are cropped to a square and kept only in this browser.</p>
+                    </div>
+
+                    <div class="panel profile-card">
+                        <h2>Details</h2>
+                        <div class="profile-fields">
+                            <div class="copy-field wide">
+                                <label for="profile-name">Full name</label>
+                                <div class="copy-row">
+                                    <input type="text" id="profile-name" data-profile="name" autocomplete="name">
+                                    <button type="button" class="icon-btn copy-btn" data-copy="profile-name" data-label="Full name" aria-label="Copy Full name" title="Copy Full name"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg></button>
+                                </div>
+                            </div>
+                            <div class="copy-field wide">
+                                <label for="profile-headline">Headline</label>
+                                <div class="copy-row">
+                                    <input type="text" id="profile-headline" data-profile="headline" autocomplete="off" placeholder="">
+                                    <button type="button" class="icon-btn copy-btn" data-copy="profile-headline" data-label="Headline" aria-label="Copy Headline" title="Copy Headline"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg></button>
+                                </div>
+                            </div>
+                            <div class="copy-field">
+                                <label for="profile-email">Email</label>
+                                <div class="copy-row">
+                                    <input type="email" id="profile-email" data-profile="email" autocomplete="email">
+                                    <button type="button" class="icon-btn copy-btn" data-copy="profile-email" data-label="Email" aria-label="Copy Email" title="Copy Email"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg></button>
+                                </div>
+                            </div>
+                            <div class="copy-field">
+                                <label for="profile-phone">Phone</label>
+                                <div class="copy-row">
+                                    <input type="tel" id="profile-phone" data-profile="phone" autocomplete="tel">
+                                    <button type="button" class="icon-btn copy-btn" data-copy="profile-phone" data-label="Phone" aria-label="Copy Phone" title="Copy Phone"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg></button>
+                                </div>
+                            </div>
+                            <div class="copy-field wide">
+                                <label for="profile-location">Location</label>
+                                <div class="copy-row">
+                                    <input type="text" id="profile-location" data-profile="location" autocomplete="address-level2">
+                                    <button type="button" class="icon-btn copy-btn" data-copy="profile-location" data-label="Location" aria-label="Copy Location" title="Copy Location"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg></button>
+                                </div>
+                            </div>
+                            <div class="copy-field">
+                                <label for="profile-linkedin">LinkedIn</label>
+                                <div class="copy-row">
+                                    <input type="text" id="profile-linkedin" data-profile="linkedin" autocomplete="off" placeholder="linkedin.com/in/...">
+                                    <button type="button" class="icon-btn copy-btn" data-copy="profile-linkedin" data-label="LinkedIn" aria-label="Copy LinkedIn" title="Copy LinkedIn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg></button>
+                                </div>
+                            </div>
+                            <div class="copy-field">
+                                <label for="profile-github">GitHub</label>
+                                <div class="copy-row">
+                                    <input type="text" id="profile-github" data-profile="github" autocomplete="off" placeholder="github.com/...">
+                                    <button type="button" class="icon-btn copy-btn" data-copy="profile-github" data-label="GitHub" aria-label="Copy GitHub" title="Copy GitHub"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg></button>
+                                </div>
+                            </div>
+                            <div class="copy-field wide">
+                                <label for="profile-portfolio">Portfolio</label>
+                                <div class="copy-row">
+                                    <input type="text" id="profile-portfolio" data-profile="portfolio" autocomplete="off" placeholder="https://">
+                                    <button type="button" class="icon-btn copy-btn" data-copy="profile-portfolio" data-label="Portfolio" aria-label="Copy Portfolio" title="Copy Portfolio"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h2 class="profile-subtitle">Other links</h2>
+                        <div id="custom-links"></div>
+                        <button type="button" class="btn-cancel" id="btn-add-link">+ Add link</button>
+
+                        <h2 class="profile-subtitle">Resume</h2>
+                        <div class="resume-box" id="resume-box">Checking saved resume...</div>
+                        <div class="profile-actions">
+                            <button type="button" class="btn-submit" id="btn-resume-upload">Upload resume</button>
+                            <button type="button" class="btn-cancel" id="btn-resume-open">Open</button>
+                            <button type="button" class="btn-cancel" id="btn-resume-download">Download</button>
+                            <button type="button" class="btn-cancel" id="btn-resume-remove">Remove</button>
+                            <input type="file" id="resume-file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden>
+                        </div>
+                        <p class="profile-hint">PDF, DOC or DOCX up to 5 MB. Your resume stays in this browser and is not included in backups, so keep your original file too.</p>
+                        <p class="backup-status" id="resume-status" role="status"></p>
                     </div>
                 </div>
             </section>
@@ -202,18 +346,29 @@
                     <div class="panel about-card">
                         <svg class="about-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 5 6v5c0 4.5 2.9 8.5 7 10 4.1-1.5 7-5.5 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></svg>
                         <h2>Private and local</h2>
-                        <p>Worqueue works in your browser without an account or login. Your application details are saved on this device and are not sent to a server.</p>
+                        <p>Worqueue works in your browser without an account or login. Your applications, profile and resume are saved on this device and are not sent to a server.</p>
                     </div>
                     <div class="panel about-card">
                         <svg class="about-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
                         <h2>Back up your data</h2>
-                        <p>Browser data can be cleared, so export a backup before changing devices or clearing your browser. Import that backup later to restore your applications.</p>
+                        <p>Browser data can be cleared, so export a backup before changing devices or clearing your browser. Import that backup later to restore your applications and profile details. Resume files are not included.</p>
                         <div class="backup-actions">
                             <button type="button" class="btn-submit" id="btn-export-data">Export backup</button>
                             <button type="button" class="btn-cancel" id="btn-import-data">Import backup</button>
+                            <button type="button" class="btn-cancel" id="btn-export-csv">Export CSV</button>
                             <input type="file" id="import-file" accept=".json,application/json" hidden>
                         </div>
                         <p class="backup-status" id="backup-status" role="status"></p>
+                    </div>
+                    <div class="panel about-card">
+                        <svg class="about-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3Z"/><path d="M4 7v5c0 1.7 3.6 3 8 3s8-1.3 8-3V7"/><path d="M4 12v5c0 1.7 3.6 3 8 3s8-1.3 8-3v-5"/></svg>
+                        <h2>Try it with sample data</h2>
+                        <p>Load a few made-up applications to see how the dashboard, follow-ups and filters work. Sample entries can be removed in one click and never touch your own records.</p>
+                        <div class="backup-actions">
+                            <button type="button" class="btn-submit" id="btn-load-sample">Load sample data</button>
+                            <button type="button" class="btn-cancel" id="btn-remove-sample">Remove sample data</button>
+                        </div>
+                        <p class="backup-status" id="sample-status" role="status"></p>
                     </div>
                 </div>
             </section>
@@ -222,7 +377,7 @@
     </div>
 
     <div class="modal-overlay" id="form-modal-overlay">
-        <div class="panel form-panel modal-content">
+        <div class="panel form-panel modal-content" role="dialog" aria-modal="true" aria-labelledby="form-title">
             <div class="modal-header">
                 <div>
                     <h2 class="modal-title" id="form-title">Add Application</h2>
@@ -280,8 +435,23 @@
                 </div>
 
                 <div class="field-group">
-                    <label for="follow-up-date">Follow-up Date</label>
+                    <label for="follow-up-date">Your Follow-up Date</label>
                     <input type="date" id="follow-up-date">
+                    <select id="follow-up-state" class="date-state-select" aria-label="Follow-up status">
+                        <option value="pending">Pending</option>
+                        <option value="done">Done</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+
+                <div class="field-group">
+                    <label for="interview-date">Scheduled Interview Date</label>
+                    <input type="date" id="interview-date">
+                    <select id="interview-state" class="date-state-select" aria-label="Interview status">
+                        <option value="pending">Pending</option>
+                        <option value="done">Done</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
                 </div>
 
                 <div class="field-group">
@@ -298,14 +468,19 @@
     </div>
 
     <div class="modal-overlay" id="delete-modal-overlay">
-        <div class="panel modal-content delete-modal-box">
-            <h3 class="delete-modal-title">Delete Application?</h3>
+        <div class="panel modal-content delete-modal-box" role="alertdialog" aria-modal="true" aria-labelledby="delete-modal-title">
+            <h3 class="delete-modal-title" id="delete-modal-title">Delete Application?</h3>
             <p class="delete-modal-sub">Are you sure you want to remove this application record from your tracker?</p>
             <div class="form-actions" style="margin-top: 1.25rem;">
                 <button type="button" class="btn-delete-confirm" id="btn-confirm-delete">Delete</button>
                 <button type="button" class="btn-cancel" id="btn-cancel-delete">Cancel</button>
             </div>
         </div>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite">
+        <span id="toast-message"></span>
+        <button type="button" class="toast-action" id="toast-action" hidden>Undo</button>
     </div>
 
     <script src="script.js"></script>

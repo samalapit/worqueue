@@ -654,7 +654,7 @@ body[data-theme="dark"] .theme-icon-moon {
     column-gap: 1rem;
 }
 
-.form-panel .field-group:nth-of-type(8),
+.form-panel .field-group:nth-of-type(9),
 .form-panel .form-actions {
     grid-column: 1 / -1;
 }
@@ -992,13 +992,15 @@ input:focus, select:focus, textarea:focus {
 }
 
 .table-container {
-    overflow: visible;
+    overflow-x: auto;
 }
 
 table {
     width: 100%;
+    min-width: 1080px;
     border-collapse: collapse;
-    font-size: 0.85rem;
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
     text-align: left;
     table-layout: fixed;
 }
@@ -1083,13 +1085,35 @@ th:last-child {
 .col-company { width: 145px; }
 .col-role { width: 175px; }
 .col-salary { width: 115px; }
-.col-date { width: 95px; }
-.col-follow-up { width: 110px; }
+.col-date { width: 115px; min-width: 115px; }
+.col-follow-up { width: 125px; min-width: 125px; }
+.col-interview { width: 115px; min-width: 115px; color: var(--text-muted); }
 .col-status { width: 130px; }
-.col-action { width: 116px; }
+.col-action { width: 155px; min-width: 155px; }
+
+.company-cell {
+    font-weight: 700;
+}
+
+.table-muted-cell {
+    color: var(--text-muted);
+}
+
+.date-state-select {
+    width: 100%;
+    margin-top: 0.4rem;
+    padding: 0.45rem 0.55rem;
+    border: 1px solid var(--border-color);
+    background: var(--surface);
+    color: var(--text-main);
+    font: inherit;
+    font-size: 0.75rem;
+}
 
 td {
     padding: 0.9rem 1rem;
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
     border-bottom: 1px solid var(--table-line);
     border-right: 1px solid var(--table-line);
     overflow: hidden;
@@ -1127,6 +1151,7 @@ td:last-child {
     justify-content: flex-end;
     gap: 0.5rem;
     white-space: nowrap;
+    min-width: 139px;
 }
 
 .chevron-icon {
@@ -1151,6 +1176,12 @@ td:last-child {
     white-space: nowrap;
 }
 
+.col-date,
+.col-follow-up,
+.col-interview {
+    white-space: nowrap;
+}
+
 .follow-up-date {
     color: var(--text-muted);
 }
@@ -1166,6 +1197,7 @@ td:last-child {
 .mobile-card-follow-up {
     color: var(--text-muted);
     font-size: 0.75rem;
+    white-space: nowrap;
 }
 
 .notes-cell {
@@ -1224,7 +1256,7 @@ td:last-child {
     display: inline-flex;
     padding: 0.2rem 0.55rem;
     border: 1px solid transparent;
-    font-size: 0.7rem;
+    font-size: 0.8rem;
     font-weight: 700;
     font-family: var(--font-sans);
     white-space: nowrap;
@@ -1266,6 +1298,47 @@ td:last-child {
     display: inline-flex;
     gap: 0.35rem;
     flex-shrink: 0;
+}
+
+.action-btn-group .icon-btn {
+    flex: 0 0 30px;
+}
+
+.reminder-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    background: var(--surface);
+}
+
+.reminder-control {
+    display: flex;
+    flex: 1 1 0;
+    min-width: 0;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: capitalize;
+}
+
+.reminder-control select {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 0.35rem 0.45rem;
+    border: 1px solid var(--border-color);
+    background: var(--surface);
+    color: var(--text-main);
+    font: inherit;
+    font-weight: 500;
+    text-transform: none;
+}
+
+.mobile-reminder-controls {
+    padding: 0.65rem;
 }
 
 .icon-btn {
@@ -1575,6 +1648,12 @@ body[data-theme="dark"] .icon-btn-bookmark.active {
         word-break: break-word;
     }
 
+    .mobile-card-number {
+        color: var(--text-muted);
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+
     .mobile-card-role {
         font-size: 0.85rem;
         color: var(--text-muted);
@@ -1591,6 +1670,12 @@ body[data-theme="dark"] .icon-btn-bookmark.active {
         border-top: 1px solid var(--table-line);
         border-bottom: 1px solid var(--table-line);
         padding: 0.65rem 0;
+    }
+
+    .mobile-card-salary {
+        font-family: var(--font-sans);
+        font-weight: 700;
+        color: var(--text-main);
     }
 
     .mobile-card-footer {
@@ -1759,7 +1844,7 @@ body[data-theme="dark"] .icon-btn-bookmark.active {
         grid-template-columns: 1fr;
     }
 
-    .form-panel .field-group:nth-of-type(8),
+    .form-panel .field-group:nth-of-type(9),
     .form-panel .form-actions {
         grid-column: auto;
     }
@@ -1785,5 +1870,550 @@ body[data-theme="dark"] .icon-btn-bookmark.active {
     .mobile-card-header,
     .mobile-card-footer {
         gap: 0.75rem;
+    }
+}
+
+/* ---- Additions: needs-attention, status select, toast, sample data ---- */
+@media (min-width: 769px) {
+    .dashboard-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.metric-hint {
+    display: block;
+    margin-top: 0.4rem;
+    color: var(--text-muted);
+    font-size: 0.65rem;
+    line-height: 1.3;
+}
+
+.attention-panel {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--border-color);
+    background: var(--surface);
+}
+
+.attention-panel h2 {
+    font-size: 1.1rem;
+    font-weight: 800;
+}
+
+.attention-sub {
+    margin: 0.25rem 0 1rem;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.attention-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.attention-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.65rem 0.85rem;
+    border: 1px solid var(--border-color);
+    background: var(--subtle-surface);
+    color: var(--text-main);
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.15s ease;
+}
+
+.attention-item:hover,
+.attention-item:focus-visible {
+    border-color: var(--text-main);
+    outline: none;
+}
+
+.attention-tag {
+    flex-shrink: 0;
+    min-width: 9.5rem;
+    padding: 0.2rem 0.5rem;
+    border: 1px solid var(--status-interview-border);
+    background: var(--status-interview-bg);
+    color: var(--status-interview-text);
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+.attention-tags {
+    display: flex;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    max-width: 21rem;
+}
+
+.attention-tags .attention-tag {
+    min-width: 0;
+}
+
+.attention-tag.attention-interview {
+    border-color: var(--status-applied-border);
+    background: var(--status-applied-bg);
+    color: var(--status-applied-text);
+}
+
+.attention-tag.overdue {
+    border-color: var(--status-rejected-border);
+    background: var(--status-rejected-bg);
+    color: var(--status-rejected-text);
+}
+
+.attention-main {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.attention-empty {
+    padding: 0.5rem 0;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.link-btn {
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--text-main);
+    font: inherit;
+    font-weight: 700;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+/* Status pill that doubles as a dropdown */
+.status-select-wrap {
+    position: relative;
+    padding: 0;
+}
+
+.status-select-wrap::after {
+    content: '';
+    position: absolute;
+    right: 0.55rem;
+    top: 50%;
+    width: 0.3rem;
+    height: 0.3rem;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: translateY(-70%) rotate(45deg);
+    pointer-events: none;
+}
+
+.status-select-wrap:focus-within {
+    outline: 2px solid var(--text-main);
+    outline-offset: 2px;
+}
+
+.status-select {
+    width: auto;
+    padding: 0.2rem 1.4rem 0.2rem 0.55rem;
+    border: none;
+    background: transparent;
+    color: inherit;
+    font-family: var(--font-sans);
+    font-size: 0.7rem;
+    font-weight: 700;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.status-select option {
+    background-color: var(--surface);
+    color: var(--text-main);
+}
+
+td.col-status {
+    padding-left: 0.6rem;
+    padding-right: 0.6rem;
+}
+
+.job-row:focus-visible {
+    outline: 2px solid var(--text-main);
+    outline-offset: -2px;
+}
+
+/* Toast (undo) */
+.toast {
+    position: fixed;
+    left: 50%;
+    bottom: 1.5rem;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    max-width: calc(100% - 2rem);
+    padding: 0.75rem 1rem;
+    background: var(--button-bg);
+    color: var(--button-text);
+    font-size: 0.8rem;
+    font-weight: 600;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.25);
+    opacity: 0;
+    visibility: hidden;
+    transform: translate(-50%, 1rem);
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+}
+
+.toast.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, 0);
+}
+
+.toast-action {
+    padding: 0;
+    border: none;
+    background: none;
+    color: inherit;
+    font: inherit;
+    font-weight: 800;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.toast-action[hidden] {
+    display: none;
+}
+
+.empty-actions {
+    margin-top: 1rem;
+}
+
+.backup-actions {
+    flex-wrap: wrap;
+}
+
+.backup-actions .btn-submit,
+.backup-actions .btn-cancel {
+    flex: 1 1 auto;
+}
+
+@media (max-width: 768px) {
+    .attention-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.4rem;
+    }
+
+    .attention-main {
+        white-space: normal;
+    }
+
+    .attention-panel {
+        padding: 1rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .toast {
+        transition: none;
+    }
+}
+
+/* ---- Slim themed scrollbars (square to match the rest of the UI) ---- */
+:root {
+    --scroll-thumb: #cbd5e1;
+    --scroll-thumb-hover: #94a3b8;
+}
+
+body[data-theme="dark"] {
+    --scroll-thumb: #334155;
+    --scroll-thumb-hover: #475569;
+}
+
+* {
+    scrollbar-width: thin;
+}
+
+html {
+    scrollbar-color: var(--scroll-thumb) transparent;
+}
+
+html:has(body[data-theme="dark"]) {
+    scrollbar-color: #334155 transparent;
+}
+
+body {
+    scrollbar-color: var(--scroll-thumb) transparent;
+}
+
+/* Fallback for browsers without scrollbar-color (older Safari) */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--scroll-thumb);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--scroll-thumb-hover);
+}
+
+/* ---- Sorting: # column, active header, mobile sort ---- */
+.col-num { width: 54px; }
+
+th.col-num {
+    padding-left: 0.4rem;
+    padding-right: 0.4rem;
+    white-space: nowrap;
+}
+
+th.sortable-header span {
+    opacity: 0.4;
+}
+
+th.sortable-header.sort-active {
+    color: var(--text-main);
+}
+
+th.sortable-header.sort-active span {
+    opacity: 1;
+}
+
+.mobile-sort {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .mobile-sort {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin: 0;
+        padding: 0.65rem 1rem;
+        border-bottom: 1px solid var(--border-color);
+        text-transform: none;
+        letter-spacing: normal;
+    }
+
+    .mobile-sort span {
+        flex-shrink: 0;
+        color: var(--text-muted);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .mobile-sort select {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.8rem;
+    }
+}
+
+/* Highlight a freshly added application */
+@keyframes rowFlash {
+    from { background-color: var(--status-interview-bg); }
+    to { background-color: transparent; }
+}
+
+.job-row.row-flash td,
+.mobile-card.row-flash {
+    animation: rowFlash 1.8s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .job-row.row-flash td,
+    .mobile-card.row-flash {
+        animation: none;
+    }
+}
+
+td.col-num {
+    padding-left: 0.4rem;
+    padding-right: 0.4rem;
+}
+
+/* ---- Profile tab ---- */
+.profile-grid {
+    display: grid;
+    grid-template-columns: 260px minmax(0, 1fr);
+    gap: 1.25rem;
+    align-items: start;
+}
+
+.profile-card {
+    padding: 1.5rem;
+}
+
+.profile-card h2 {
+    margin-bottom: 1rem;
+    font-size: 1rem;
+}
+
+.profile-card h2.profile-subtitle {
+    margin-top: 0.75rem;
+}
+
+.profile-photo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 212px;
+    aspect-ratio: 1;
+    margin: 0 auto 1rem;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    background: var(--subtle-surface);
+}
+
+.profile-photo img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-photo img[hidden],
+.profile-initials[hidden] {
+    display: none;
+}
+
+.profile-initials {
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 3rem;
+    font-weight: 800;
+}
+
+.profile-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.profile-actions .btn-submit {
+    flex: 1 1 100%;
+}
+
+.profile-actions .btn-cancel {
+    flex: 1 1 auto;
+    padding: 0.6rem 0.8rem;
+}
+
+.profile-actions button:disabled,
+.btn-submit:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.profile-actions button[hidden],
+#btn-add-link[hidden] {
+    display: none;
+}
+
+.profile-hint {
+    margin-top: 0.85rem;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    line-height: 1.5;
+}
+
+.profile-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 1rem;
+}
+
+.copy-field {
+    margin-bottom: 0.85rem;
+}
+
+.copy-field.wide {
+    grid-column: 1 / -1;
+}
+
+.copy-row {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.copy-row input {
+    flex: 1;
+    min-width: 0;
+}
+
+.copy-btn {
+    flex-shrink: 0;
+    padding-left: 0.7rem;
+    padding-right: 0.7rem;
+}
+
+.custom-link-row {
+    display: grid;
+    grid-template-columns: minmax(90px, 0.7fr) minmax(0, 1.6fr) auto auto;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.resume-box {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border: 1px dashed var(--border-color);
+    background: var(--subtle-surface);
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.resume-name {
+    color: var(--text-main);
+    font-size: 0.9rem;
+    font-weight: 700;
+    word-break: break-all;
+}
+
+.resume-meta {
+    margin-top: 0.2rem;
+    font-size: 0.75rem;
+}
+
+@media (max-width: 768px) {
+    .profile-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-fields {
+        grid-template-columns: 1fr;
+    }
+
+    .custom-link-row {
+        grid-template-columns: 1fr auto auto;
+    }
+
+    .custom-link-label {
+        grid-column: 1 / -1;
+    }
+}
+
+/* Four nav items don't fit in one row on small phones */
+@media (max-width: 560px) {
+    .sidebar-nav {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
     }
 }
