@@ -24,7 +24,7 @@ function loadApplications() {
 }
 
 let applications = loadApplications();
-let openNotesId = null;
+let openApplicationId = null;
 let pendingDeleteId = null;
 // Default order: entry # ascending (1 on top). Click a header to flip it.
 const sortDirections = { number: 'asc', applied: 'desc', followUp: 'desc', interview: 'desc' };
@@ -96,6 +96,11 @@ const btnSubmitText = document.getElementById('btn-submit-text');
 const deleteModalOverlay = document.getElementById('delete-modal-overlay');
 const btnConfirmDelete = document.getElementById('btn-confirm-delete');
 const btnCancelDelete = document.getElementById('btn-cancel-delete');
+const applicationDetailsModalOverlay = document.getElementById('application-details-modal-overlay');
+const btnCloseApplicationDetails = document.getElementById('btn-close-application-details');
+const applicationDetailsTitle = document.getElementById('application-details-title');
+const applicationDetailsSubtitle = document.getElementById('application-details-subtitle');
+const applicationDetailsContent = document.getElementById('application-details-content');
 
 const dashTotal = document.getElementById('dash-total');
 const dashInterview = document.getElementById('dash-interview');
@@ -263,6 +268,7 @@ jobForm.addEventListener('input', () => { formDirty = true; });
 document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
     if (deleteModalOverlay.classList.contains('active')) closeDeleteModal();
+    else if (applicationDetailsModalOverlay.classList.contains('active')) closeApplicationDetails();
     else if (formModalOverlay.classList.contains('active')) closeFormModal();
 });
 formModalOverlay.addEventListener('click', (e) => {
@@ -271,9 +277,13 @@ formModalOverlay.addEventListener('click', (e) => {
 deleteModalOverlay.addEventListener('click', (e) => {
     if (e.target === deleteModalOverlay) closeDeleteModal();
 });
+applicationDetailsModalOverlay.addEventListener('click', (e) => {
+    if (e.target === applicationDetailsModalOverlay) closeApplicationDetails();
+});
 
 btnCloseFormModal.addEventListener('click', closeFormModal);
 btnCancelModal.addEventListener('click', closeFormModal);
+btnCloseApplicationDetails.addEventListener('click', closeApplicationDetails);
 
 function closeFormModal() {
     formModalOverlay.classList.remove('active');
@@ -391,10 +401,87 @@ function resetFilters() {
 
 function openApplication(id) {
     resetFilters();
-    openNotesId = id;
     switchTab('pipeline');
     renderPipeline();
-    revealApplication(id);
+    openApplicationDetails(id);
+}
+
+function openApplicationDetails(id) {
+    if (!applications.some(app => app.id === id)) return;
+    openApplicationId = id;
+    renderApplicationDetails();
+    applicationDetailsModalOverlay.classList.add('active');
+    btnCloseApplicationDetails.focus();
+}
+
+function closeApplicationDetails() {
+    applicationDetailsModalOverlay.classList.remove('active');
+    openApplicationId = null;
+}
+
+function renderApplicationDetails() {
+    const app = applications.find(item => item.id === openApplicationId);
+    if (!app) {
+        closeApplicationDetails();
+        return;
+    }
+
+    const currencySymbol = app.currency === 'USD' ? '$' : '₱';
+    const rateText = app.salaryRate === 'Hour' ? 'Hour' : 'Month';
+    const salary = app.salary ? `${currencySymbol}${escapeMarkup(app.salary)} / ${rateText}` : '—';
+    const appliedDate = app.appliedDate || app.dateAdded;
+    const jobLink = app.jobLink
+        ? `<a href="${escapeMarkup(app.jobLink)}" target="_blank" rel="noopener noreferrer" class="job-link-badge">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            <span>${escapeMarkup(getHostname(app.jobLink))}</span>
+        </a>`
+        : '<span class="application-detail-muted">No job link added</span>';
+
+    applicationDetailsTitle.textContent = app.company;
+    applicationDetailsSubtitle.textContent = `#${app.seqNumber} · ${app.position}`;
+    applicationDetailsContent.innerHTML = `
+        <div class="application-details-top">
+            <div>
+                <div class="application-detail-label">Current status</div>
+                ${statusSelect(app)}
+            </div>
+            <div class="application-details-actions">
+                <button type="button" class="icon-btn icon-btn-bookmark ${app.bookmarked ? 'active' : ''}" onclick="toggleBookmark(${app.id})" title="${app.bookmarked ? 'Remove bookmark' : 'Bookmark application'}" aria-label="${app.bookmarked ? 'Remove bookmark' : 'Bookmark application'}">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="${app.bookmarked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                </button>
+                <button type="button" class="icon-btn" onclick="closeApplicationDetails(); editApplication(${app.id});" title="Edit application" aria-label="Edit application">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                </button>
+                <button type="button" class="icon-btn icon-btn-delete" onclick="closeApplicationDetails(); promptDelete(${app.id});" title="Delete application" aria-label="Delete application">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                </button>
+            </div>
+        </div>
+        <div class="application-details-grid">
+            <div><span class="application-detail-label">Salary</span><strong>${salary}</strong></div>
+            <div><span class="application-detail-label">Applied</span><strong>${formatShortDate(appliedDate)}</strong></div>
+            <div><span class="application-detail-label">Follow-up</span><strong>${app.followUpDate ? formatShortDate(app.followUpDate) : '—'}</strong></div>
+            <div><span class="application-detail-label">Interview</span><strong>${app.interviewDate ? formatShortDate(app.interviewDate) : '—'}</strong></div>
+        </div>
+        <div class="reminder-controls">
+            ${reminderStateSelect(app, 'followup')}
+            ${reminderStateSelect(app, 'interview')}
+        </div>
+        <div class="application-detail-section">
+            <div class="application-detail-section-header">
+                <span class="notes-label">Job Posting Link</span>
+            </div>
+            <div class="application-detail-section-body">${jobLink}</div>
+        </div>
+        <div class="application-detail-section">
+            <div class="application-detail-section-header">
+                <span class="notes-label">Notes / Details</span>
+            </div>
+            <div class="application-detail-section-body">
+                <div class="notes-content">${app.notes ? escapeMarkup(app.notes) : '<em>No notes added yet. Click Edit to add details.</em>'}</div>
+            </div>
+        </div>
+    `;
 }
 
 // Scroll a record into view (and briefly highlight it for newly added ones)
@@ -469,14 +556,34 @@ mobileSort.addEventListener('change', () => {
 });
 refreshSortUI();
 
+function positionStatusDropdown() {
+    if (!statusDropdownMenu.classList.contains('active')) return;
+
+    const headerRect = statusHeaderToggle.getBoundingClientRect();
+    const menuWidth = statusDropdownMenu.offsetWidth;
+    const menuHeight = statusDropdownMenu.offsetHeight;
+    const left = Math.min(headerRect.left, window.innerWidth - menuWidth - 8);
+    const belowTop = headerRect.bottom + 2;
+    const top = belowTop + menuHeight <= window.innerHeight
+        ? belowTop
+        : Math.max(8, headerRect.top - menuHeight - 2);
+
+    statusDropdownMenu.style.left = `${Math.max(8, left)}px`;
+    statusDropdownMenu.style.top = `${top}px`;
+}
+
 statusHeaderToggle.addEventListener('click', (e) => {
     e.stopPropagation();
     statusDropdownMenu.classList.toggle('active');
+    positionStatusDropdown();
 });
 
 document.addEventListener('click', () => {
     statusDropdownMenu.classList.remove('active');
 });
+
+window.addEventListener('resize', positionStatusDropdown);
+window.addEventListener('scroll', positionStatusDropdown, true);
 
 document.querySelectorAll('.status-dropdown-item').forEach(item => {
     item.addEventListener('click', (e) => {
@@ -537,12 +644,14 @@ function changeStatus(id, newStatus) {
     target.status = newStatus;
     persistData();
     renderPipeline(searchInput.value);
+    if (openApplicationId === id) renderApplicationDetails();
     showToast(`${target.company} moved to ${newStatus}.`, 'Undo', () => {
         const again = applications.find(app => app.id === id);
         if (again) {
             again.status = previous;
             persistData();
             renderPipeline(searchInput.value);
+            if (openApplicationId === id) renderApplicationDetails();
         }
     });
 }
@@ -574,6 +683,7 @@ function changeReminderState(id, type, state) {
     target[stateKey] = state;
     persistData();
     renderPipeline(searchInput.value);
+    if (openApplicationId === id) renderApplicationDetails();
     showToast(`${type === 'followup' ? 'Follow-up' : 'Interview'} marked ${state}.`);
 }
 
@@ -661,7 +771,6 @@ function renderRow(app) {
     const row = document.createElement('tr');
     row.className = 'job-row';
 
-    const isExpanded = openNotesId === app.id;
     const currencySymbol = app.currency === 'USD' ? '$' : '₱';
     const rateText = app.salaryRate === 'Hour' ? 'Hour' : 'Month';
     const formattedSalary = app.salary 
@@ -694,58 +803,22 @@ function renderRow(app) {
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
                     </button>
                 </div>
-                <svg class="chevron-icon ${isExpanded ? 'open' : ''}" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
             </div>
         </td>
     `;
 
     row.dataset.id = app.id;
     row.tabIndex = 0;
-    row.setAttribute('aria-expanded', isExpanded);
-    row.addEventListener('click', () => toggleNotes(app.id));
+    row.setAttribute('aria-label', `Open details for ${app.company}`);
+    row.addEventListener('click', () => openApplicationDetails(app.id));
     row.addEventListener('keydown', (e) => {
         if (e.target === row && (e.key === 'Enter' || e.key === ' ')) {
             e.preventDefault();
-            toggleNotes(app.id, true);
+            openApplicationDetails(app.id);
         }
     });
     jobListBody.appendChild(row);
 
-    if (isExpanded) {
-        const notesRow = document.createElement('tr');
-        notesRow.className = 'notes-row';
-        
-        let linkHtml = '';
-        if (app.jobLink) {
-            const displayUrl = getHostname(app.jobLink);
-            linkHtml = `
-                <div>
-                    <div class="notes-label">Job Posting Link</div>
-                    <a href="${escapeMarkup(app.jobLink)}" target="_blank" rel="noopener noreferrer" class="job-link-badge" onclick="event.stopPropagation();" title="${escapeMarkup(app.jobLink)}">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink: 0;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                        ${escapeMarkup(displayUrl)}
-                    </a>
-                </div>
-            `;
-        }
-
-        notesRow.innerHTML = `
-            <td colspan="9" class="notes-cell">
-                <div class="drawer-inner">
-                    ${linkHtml}
-                    <div class="reminder-controls">
-                        ${reminderStateSelect(app, 'followup')}
-                        ${reminderStateSelect(app, 'interview')}
-                    </div>
-                    <div>
-                        <div class="notes-label">Notes / Details</div>
-                        <div class="notes-content">${app.notes ? escapeMarkup(app.notes) : '<em>No notes added yet. Click Edit to add details.</em>'}</div>
-                    </div>
-                </div>
-            </td>
-        `;
-        jobListBody.appendChild(notesRow);
-    }
 }
 
 function renderMobileCard(app) {
@@ -803,13 +876,13 @@ function renderMobileCard(app) {
 
         <div class="mobile-card-footer">
             <div class="action-btn-group">
-                <button class="icon-btn icon-btn-bookmark ${app.bookmarked ? 'active' : ''}" onclick="toggleBookmark(${app.id})">
+                <button class="icon-btn icon-btn-bookmark ${app.bookmarked ? 'active' : ''}" onclick="toggleBookmark(${app.id})" title="${app.bookmarked ? 'Unbookmark' : 'Bookmark'}" aria-label="${app.bookmarked ? 'Unbookmark' : 'Bookmark'}">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="${app.bookmarked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
                 </button>
-                <button class="icon-btn" onclick="editApplication(${app.id})">
+                <button class="icon-btn" onclick="editApplication(${app.id})" title="Edit Application" aria-label="Edit Application">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                 </button>
-                <button class="icon-btn icon-btn-delete" onclick="promptDelete(${app.id})">
+                <button class="icon-btn icon-btn-delete" onclick="promptDelete(${app.id})" title="Delete Application" aria-label="Delete Application">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
                 </button>
             </div>
@@ -817,15 +890,18 @@ function renderMobileCard(app) {
     `;
 
     mobileContainer.appendChild(card);
-}
-
-function toggleNotes(id, fromKeyboard = false) {
-    openNotesId = openNotesId === id ? null : id;
-    renderPipeline(searchInput.value);
-    if (fromKeyboard) {
-        const row = document.querySelector(`.job-row[data-id="${id}"]`);
-        if (row) row.focus();
-    }
+    card.tabIndex = 0;
+    card.setAttribute('aria-label', `Open details for ${app.company}`);
+    card.addEventListener('click', (e) => {
+        if (e.target.closest('button, select, a, input, textarea, label')) return;
+        openApplicationDetails(app.id);
+    });
+    card.addEventListener('keydown', (e) => {
+        if (e.target === card && (e.key === 'Enter' || e.key === ' ')) {
+            e.preventDefault();
+            openApplicationDetails(app.id);
+        }
+    });
 }
 
 function toggleBookmark(id) {
@@ -837,6 +913,7 @@ function toggleBookmark(id) {
     });
     persistData();
     renderPipeline(searchInput.value);
+    if (openApplicationId === id) renderApplicationDetails();
 }
 
 jobForm.addEventListener('submit', function (e) {
@@ -931,7 +1008,7 @@ btnConfirmDelete.addEventListener('click', () => {
         const index = applications.findIndex(item => item.id === pendingDeleteId);
         if (index !== -1) {
             const [removed] = applications.splice(index, 1);
-            if (openNotesId === pendingDeleteId) openNotesId = null;
+            if (openApplicationId === pendingDeleteId) closeApplicationDetails();
             persistData();
             renderPipeline(searchInput.value);
             showToast('Application deleted.', 'Undo', () => {
@@ -1083,7 +1160,7 @@ function removeSampleData() {
         sampleStatus.textContent = 'No sample data to remove.';
         return;
     }
-    if (openNotesId && !applications.some(app => app.id === openNotesId)) openNotesId = null;
+    if (openApplicationId && !applications.some(app => app.id === openApplicationId)) closeApplicationDetails();
     persistData();
     renderPipeline(searchInput.value);
     sampleStatus.textContent = `Removed ${removed} sample applications.`;
